@@ -1,7 +1,7 @@
 {
   "name": "oneclick-clonador",
   "version": "1.0.0",
-  "description": "Clonador Inteligente de Páginas",
+  "description": "Clonador de páginas em HTML",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
