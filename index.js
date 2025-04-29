@@ -2,154 +2,204 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 
-// Middleware para ler formulário
 app.use(express.urlencoded({ extended: true }));
 
-// Criar a pasta 'arquivos' automaticamente no início
-const pastaArquivos = path.join(__dirname, 'arquivos');
-if (!fs.existsSync(pastaArquivos)) {
-  fs.mkdirSync(pastaArquivos);
-}
-
-// Página inicial
+// ROTA INICIAL COM LAYOUT ATUALIZADO
 app.get('/', (req, res) => {
-  const { erro } = req.query; // Captura erros via query string
-  res.send(`
-    <html>
-      <head>
-        <title>Clonador Inteligente de Páginas</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-          }
-          .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 450px;
-          }
-          .logo {
-            width: 80px;
-            margin-bottom: 10px;
-          }
-          h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
-          }
-          .slogan {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-          }
-          label {
-            font-size: 14px;
-            color: #555;
-            display: block;
-            margin-bottom: 8px;
-            text-align: left;
-          }
-          input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-          }
-          .error {
-            color: red;
-            margin-bottom: 15px;
-            font-size: 13px;
-          }
-          button {
-            padding: 12px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-          }
-          button:hover {
-            background-color: #0056b3;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <img src="https://via.placeholder.com/80x80.png?text=Logo" alt="Logo" class="logo" />
-          <h1>Clonador Inteligente de Páginas</h1>
-          <div class="slogan">Transforme Páginas em Resultados: Capture, Salve e Vença no Digital!</div>
-          ${erro ? `<div class="error">${erro}</div>` : ''}
-          <form method="POST" action="/gerar" target="_self">
-            <label>Insira aqui o link da página que deseja clonar (Ex: página de afiliado)</label>
-            <input type="text" name="url" placeholder="https://example.com" required/>
-            <button type="submit">Gerar Arquivo</button>
-          </form>
-        </div>
-      </body>
-    </html>
-  `);
+  res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneClick Clonador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --verde: #00FF88;
+      --fundo: #0f0f1c;
+      --texto: #f2f2f2;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: var(--fundo);
+      font-family: 'Poppins', sans-serif;
+      color: var(--texto);
+      overflow: hidden;
+    }
+    .particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1c 100%);
+      overflow: hidden;
+    }
+    .fade-in {
+      animation: fadeIn 1.2s ease-in-out forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      z-index: 1;
+      position: relative;
+    }
+    h1 {
+      font-size: 2.8rem;
+      text-align: center;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 10px;
+    }
+    h1 span {
+      color: var(--verde);
+    }
+    p {
+      font-size: 1rem;
+      color: #aaa;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .form-container {
+      width: 100%;
+      max-width: 500px;
+      background-color: #1a1a2e;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.05);
+    }
+    label {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 8px;
+      display: block;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border: 1px solid var(--verde);
+      border-radius: 10px;
+      background-color: #0f0f1c;
+      color: white;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    input[type="text"]::placeholder { color: #666; }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      background-color: var(--verde);
+      color: #0f0f1c;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background-color: #00e676;
+      box-shadow: 0 0 15px var(--verde);
+    }
+    footer {
+      margin-top: 60px;
+      font-size: 13px;
+      color: #555;
+      text-align: center;
+    }
+    @media (max-width: 500px) {
+      h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles"></div>
+  <main class="fade-in">
+    <h1><span>OneClick</span> Clonador</h1>
+    <p>Clone qualquer página com um clique</p>
+    <div class="form-container">
+      <form action="/gerar" method="POST">
+        <label for="url">Link da página de afiliado</label>
+        <input type="text" name="url" id="url" placeholder="https://exemplo.com/pagina" required />
+        <button type="submit">Gerar Arquivo</button>
+      </form>
+    </div>
+    <footer>© 2025 OneClick Clonador · Norton Dev</footer>
+  </main>
+  <script>
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    document.querySelector('.particles').appendChild(canvas);
+    let width, height, particles;
+    function initCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      particles = Array.from({ length: 40 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5
+      }));
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#00ff88';
+      particles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > width) p.dx *= -1;
+        if (p.y < 0 || p.y > height) p.dy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    window.addEventListener('resize', initCanvas);
+    initCanvas();
+    animateParticles();
+  </script>
+</body>
+</html>`);
 });
 
-// Função para validar se a URL é válida
-function validarURL(url) {
-  const regex = /^(https?:\/\/)[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
-  return regex.test(url);
-}
-
-// Rota que gera o arquivo HTML com nome automático
+// ROTA PARA GERAR O HTML
 app.post('/gerar', async (req, res) => {
-  const { url } = req.body;
-
-  if (!validarURL(url)) {
-    // Se URL inválida, redireciona para página principal com erro
-    return res.redirect('/?erro=URL+inv%C3%A1lida.+Insira+um+link+completo+com+https://');
-  }
+  const url = req.body.url;
+  const data = new Date().toISOString().split('T')[0];
+  const nomeArquivo = `index-${data}.html`;
 
   try {
-    const response = await axios.get(url);
-    const htmlContent = response.data;
+    const resposta = await axios.get(url);
+    const html = resposta.data;
 
-    // Pegar a data atual
-    const dataAtual = new Date();
-    const ano = dataAtual.getFullYear();
-    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-    const dia = String(dataAtual.getDate()).padStart(2, '0');
+    // Cria pasta /arquivos se não existir
+    const dir = path.join(__dirname, 'arquivos');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
-    // Nome do arquivo
-    const nomeArquivo = `index-${ano}-${mes}-${dia}.html`;
-    const filePath = path.join(pastaArquivos, nomeArquivo);
+    const caminho = path.join(dir, nomeArquivo);
+    fs.writeFileSync(caminho, html, 'utf-8');
 
-    // Salvar o HTML na pasta 'arquivos'
-    fs.writeFileSync(filePath, htmlContent);
-
-    // Enviar o arquivo para download
-    res.download(filePath, nomeArquivo, () => {
-      console.log('Arquivo enviado com sucesso!');
-    });
-
-  } catch (error) {
-    console.error('Erro ao baixar a página:', error);
-    res.redirect('/?erro=Erro+ao+baixar+a+p%C3%A1gina.+Verifique+o+link.');
+    res.download(caminho);
+  } catch (erro) {
+    console.error('Erro ao gerar arquivo:', erro.message);
+    res.send('Erro ao gerar o arquivo. Verifique o link e tente novamente.');
   }
 });
 
-// Iniciar o servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(\`Servidor rodando em http://localhost:\${port}\`);
 });
